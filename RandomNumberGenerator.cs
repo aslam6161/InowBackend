@@ -14,22 +14,9 @@ namespace InowBackend
         private readonly IHubContext<SignalrGenerateRandomHub, ISignalrGenerateRandomHub> _hubContext;
         private bool isStopped = false;
         string reportFile;
-        private static RandomNumberGenerator instance;
         public int totalNumeric=0, totalAlphaNumeric=0, totalFloat=0;
         private static object obj = new object();
         private FileWriter fileWriter;
-
-        //public void Counter()
-        //{
-        //    Clients.Caller.CounterUpdate(new CounterDTO
-        //    {
-        //        counter1 = totalNumeric,
-        //        counter2 = totalAlphaNumeric,
-        //        counter3 = totalFloat
-        //    });
-
-
-        //}
 
         public RandomNumberGenerator(IHubContext<SignalrGenerateRandomHub,ISignalrGenerateRandomHub> hubContext)
         {
@@ -40,25 +27,6 @@ namespace InowBackend
             totalFloat = 0;
             fileWriter = new FileWriter();
         }
-
-        //public static RandomNumberGenerator Instance
-        //{
-        //    get
-        //    {
-        //        if (instance == null)
-        //        {
-        //            lock (obj)
-        //            {
-        //                if (instance == null)
-        //                {
-        //                    instance = new RandomNumberGenerator();
-        //                }
-        //            }
-        //        }
-
-        //        return instance;
-        //    }
-        //}
 
         public async Task GenerateRandomNumber(List<int> selectedOptions, int fileSize)
         {

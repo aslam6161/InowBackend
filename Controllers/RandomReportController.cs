@@ -1,12 +1,7 @@
 ﻿using InowBackend.Model;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using InowBackend.Hubs;
-using Microsoft.AspNetCore.SignalR;
 
 namespace InowBackend.Controllers
 {
@@ -21,28 +16,40 @@ namespace InowBackend.Controllers
             _randomNumberGenerator = randomNumberGenerator;
         }
         [HttpPost]
-        public async Task<string> StartGeneratingRandomNumber([FromBody] Option option)
+        public async Task<Response> StartGeneratingRandomNumber([FromBody] Option option)
         {
-            //RandomNumberGenerator instance = RandomNumberGenerator.Instance;
 
-            var thread = new Thread(
-                    () => _randomNumberGenerator.GenerateRandomNumber(option.SelectedOptions, option.FileSize));
-            thread.Start();
+            try
+            {
+                await _randomNumberGenerator.GenerateRandomNumber(option.SelectedOptions, option.FileSize);
 
-            return "Started";
+                return new Response(true, "Started", null);
+            }
+            catch (Exception ex)
+            {
+                return new Response(false, ex.Message, null);
+            }
         }
 
         [HttpGet]
-        public string Stop()
+        public Response Stop()
         {
-            //RandomNumberGenerator instance = RandomNumberGenerator.Instance;
-            //instance.Stop();
-            _randomNumberGenerator.Stop(); 
-            return "Stopped";
+            try
+            {
+                _randomNumberGenerator.Stop();
+
+                return new Response(true, "Stoped", null);
+            }
+            catch (Exception ex)
+            {
+                return new Response(false, ex.Message, null);
+            }
+
+
         }
 
         [HttpGet]
-        public ReportInfo GetReportData()
+        public Response GetReportData()
         {
             try
             {
@@ -57,11 +64,14 @@ namespace InowBackend.Controllers
                     FloatPercentage = (int)Math.Round(((double)RG.totalFloat / (double)totalObject) * 100.0)
                 };
 
-                return info;
+                return new Response(true, "Success", info);
+
+
             }
+
             catch (Exception ex)
             {
-                throw ex;
+                return new Response(false, ex.Message, null);
             }
 
         }
