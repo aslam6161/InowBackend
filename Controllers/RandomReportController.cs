@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using InowBackend.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace InowBackend.Controllers
 {
@@ -12,22 +14,30 @@ namespace InowBackend.Controllers
     [ApiController]
     public class RandomReportController : ControllerBase
     {
+        private readonly RandomNumberGenerator _randomNumberGenerator;
+
+        public RandomReportController(RandomNumberGenerator randomNumberGenerator)
+        {
+            _randomNumberGenerator = randomNumberGenerator;
+        }
         [HttpPost]
         public async Task<string> StartGeneratingRandomNumber([FromBody] Option option)
         {
-            RandomNumberGenerator instance = RandomNumberGenerator.Instance;
+            //RandomNumberGenerator instance = RandomNumberGenerator.Instance;
+
             var thread = new Thread(
-                    () =>  instance.GenerateRandomNumber(option.SelectedOptions, option.FileSize));
+                    () => _randomNumberGenerator.GenerateRandomNumber(option.SelectedOptions, option.FileSize));
             thread.Start();
-            
-            return  "Started";
+
+            return "Started";
         }
 
         [HttpGet]
         public string Stop()
         {
-            RandomNumberGenerator instance = RandomNumberGenerator.Instance;
-            instance.Stop();
+            //RandomNumberGenerator instance = RandomNumberGenerator.Instance;
+            //instance.Stop();
+            _randomNumberGenerator.Stop(); 
             return "Stopped";
         }
 
@@ -36,13 +46,13 @@ namespace InowBackend.Controllers
         {
             try
             {
-                RandomNumberGenerator RG = RandomNumberGenerator.Instance;
+                RandomNumberGenerator RG = _randomNumberGenerator;
                 var totalObject = RG.totalNumeric + RG.totalAlphaNumeric + RG.totalFloat;
 
 
                 ReportInfo info = new ReportInfo()
                 {
-                    NumericPercentage =(int)Math.Round( ((double)RG.totalNumeric / (double)totalObject) * 100),
+                    NumericPercentage = (int)Math.Round(((double)RG.totalNumeric / (double)totalObject) * 100),
                     AlphaNumericPercentage = (int)Math.Round(((double)RG.totalAlphaNumeric / (double)totalObject) * 100),
                     FloatPercentage = (int)Math.Round(((double)RG.totalFloat / (double)totalObject) * 100.0)
                 };

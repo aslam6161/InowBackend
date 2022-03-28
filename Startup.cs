@@ -43,6 +43,7 @@ namespace InowBackend
                 .AllowCredentials());
             });
             services.AddSignalR();
+            services.AddSingleton<RandomNumberGenerator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,7 +67,7 @@ namespace InowBackend
             {
                 endpoints.MapControllers();
               //  endpoints.MapHub<RandomNumberGenerator>("/signalrGenerateRandomHub");
-                endpoints.MapHub<RandomNumberGenerator>("/signalrGenerateRandomHub");
+                endpoints.MapHub<SignalrGenerateRandomHub>("/signalrGenerateRandomHub");
             });
         }
     }

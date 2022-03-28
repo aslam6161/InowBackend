@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace InowBackend
 {
-    public class RandomNumberGenerator : Hub<ISignalrGenerateRandomHub>
+    public class RandomNumberGenerator     
     {
+        private readonly IHubContext<SignalrGenerateRandomHub, ISignalrGenerateRandomHub> _hubContext;
         private bool isStopped = false;
         string reportFile;
         private static RandomNumberGenerator instance;
@@ -30,8 +31,9 @@ namespace InowBackend
 
         //}
 
-        private RandomNumberGenerator()
+        public RandomNumberGenerator(IHubContext<SignalrGenerateRandomHub,ISignalrGenerateRandomHub> hubContext)
         {
+            _hubContext = hubContext;
             reportFile = "";
             totalNumeric = 0;
             totalAlphaNumeric = 0;
@@ -39,24 +41,24 @@ namespace InowBackend
             fileWriter = new FileWriter();
         }
 
-        public static RandomNumberGenerator Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    lock (obj)
-                    {
-                        if (instance == null)
-                        {
-                            instance = new RandomNumberGenerator();
-                        }
-                    }
-                }
+        //public static RandomNumberGenerator Instance
+        //{
+        //    get
+        //    {
+        //        if (instance == null)
+        //        {
+        //            lock (obj)
+        //            {
+        //                if (instance == null)
+        //                {
+        //                    instance = new RandomNumberGenerator();
+        //                }
+        //            }
+        //        }
 
-                return instance;
-            }
-        }
+        //        return instance;
+        //    }
+        //}
 
         public async Task GenerateRandomNumber(List<int> selectedOptions, int fileSize)
         {
@@ -81,8 +83,7 @@ namespace InowBackend
                     reportFile += reportFile.Length == 0 ? GetRandomFloat().ToString() : "," + GetRandomFloat().ToString();
                     totalFloat++;
                 }
-
-               await Clients.Caller.CounterUpdate(new CounterDTO
+                await _hubContext.Clients.All.CounterUpdate(new CounterDTO
                 {
                     counter1 = totalNumeric,
                     counter2 = totalAlphaNumeric,
@@ -134,5 +135,15 @@ namespace InowBackend
             isStopped = false;
             totalAlphaNumeric = totalFloat = totalNumeric = 0;
         }
+        //public override async Task OnConnectedAsync()
+        //{
+        //    await Groups.AddToGroupAsync(Context.ConnectionId, "SignalR Users");
+        //    await base.OnConnectedAsync();
+        //}
+        //public override async Task OnDisconnectedAsync(Exception exception)
+        //{
+        //    await Groups.RemoveFromGroupAsync(Context.ConnectionId, "SignalR Users");
+        //    await base.OnDisconnectedAsync(exception);
+        //}
     }
 }
