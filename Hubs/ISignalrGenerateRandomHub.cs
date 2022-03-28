@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace InowBackend.Hubs
 {
-  public  interface ISignalrGenerateRandomHub
+  public interface ISignalrGenerateRandomHub
     {
         Task CounterUpdate(CounterDTO obj);
     }
