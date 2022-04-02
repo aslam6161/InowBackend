@@ -1,4 +1,4 @@
-﻿using InowBackend.Model;
+﻿using InowBackend.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

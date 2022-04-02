@@ -1,31 +1,33 @@
 ﻿using InowBackend.Hubs;
-using InowBackend.Model;
-using InowBackend.Utility;
+using InowBackend.Models;
+using InowBackend.Services.Utility;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace InowBackend
+namespace InowBackend.Services.Randoms
 {
-    public class RandomNumberGenerator     
+    public class RandomNumberService : IRandomNumberService
     {
         private readonly IHubContext<SignalrGenerateRandomHub, ISignalrGenerateRandomHub> _hubContext;
+        private readonly IFileWriterService _fileWriterService;
+
         private bool isStopped = false;
         string reportFile;
-        public int totalNumeric=0, totalAlphaNumeric=0, totalFloat=0;
-        private static object obj = new object();
-        private FileWriter fileWriter;
+        public int totalNumeric = 0, totalAlphaNumeric = 0, totalFloat = 0;
 
-        public RandomNumberGenerator(IHubContext<SignalrGenerateRandomHub,ISignalrGenerateRandomHub> hubContext)
+
+        public RandomNumberService(IHubContext<SignalrGenerateRandomHub, ISignalrGenerateRandomHub> hubContext,
+            IFileWriterService fileWriterService)
         {
             _hubContext = hubContext;
             reportFile = "";
             totalNumeric = 0;
             totalAlphaNumeric = 0;
             totalFloat = 0;
-            fileWriter = new FileWriter();
+            _fileWriterService = fileWriterService;
         }
 
         public async Task GenerateRandomNumber(List<int> selectedOptions, int fileSize)
@@ -63,12 +65,27 @@ namespace InowBackend
                     isStopped = true;
                 }
             }
-            fileWriter.WriteStrToFile(reportFile);
+            _fileWriterService.WriteStrToFile(reportFile);
         }
 
         public void Stop()
         {
             isStopped = true;
+        }
+
+        public ReportInfo GetReportData()
+        {
+            var totalObject = this.totalNumeric + this.totalAlphaNumeric + this.totalFloat;
+
+
+            ReportInfo info = new ReportInfo()
+            {
+                NumericPercentage = (int)Math.Round(((double)this.totalNumeric / (double)totalObject) * 100),
+                AlphaNumericPercentage = (int)Math.Round(((double)this.totalAlphaNumeric / (double)totalObject) * 100),
+                FloatPercentage = (int)Math.Round(((double)this.totalFloat / (double)totalObject) * 100.0)
+            };
+
+            return info;
         }
 
 

@@ -1,4 +1,5 @@
-﻿using InowBackend.Model;
+﻿using InowBackend.Models;
+using InowBackend.Services.Randoms;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -9,11 +10,11 @@ namespace InowBackend.Controllers
     [ApiController]
     public class RandomReportController : ControllerBase
     {
-        private readonly RandomNumberGenerator _randomNumberGenerator;
+        private readonly IRandomNumberService _randomNumberService;
 
-        public RandomReportController(RandomNumberGenerator randomNumberGenerator)
+        public RandomReportController(IRandomNumberService randomNumberService)
         {
-            _randomNumberGenerator = randomNumberGenerator;
+            _randomNumberService = randomNumberService;
         }
         [HttpPost]
         public async Task<Response> StartGeneratingRandomNumber([FromBody] Option option)
@@ -21,7 +22,7 @@ namespace InowBackend.Controllers
 
             try
             {
-                await _randomNumberGenerator.GenerateRandomNumber(option.SelectedOptions, option.FileSize);
+                await _randomNumberService.GenerateRandomNumber(option.SelectedOptions, option.FileSize);
 
                 return new Response(true, "Started", null);
             }
@@ -36,7 +37,7 @@ namespace InowBackend.Controllers
         {
             try
             {
-                _randomNumberGenerator.Stop();
+                _randomNumberService.Stop();
 
                 return new Response(true, "Stoped", null);
             }
@@ -45,7 +46,6 @@ namespace InowBackend.Controllers
                 return new Response(false, ex.Message, null);
             }
 
-
         }
 
         [HttpGet]
@@ -53,20 +53,9 @@ namespace InowBackend.Controllers
         {
             try
             {
-                RandomNumberGenerator RG = _randomNumberGenerator;
-                var totalObject = RG.totalNumeric + RG.totalAlphaNumeric + RG.totalFloat;
-
-
-                ReportInfo info = new ReportInfo()
-                {
-                    NumericPercentage = (int)Math.Round(((double)RG.totalNumeric / (double)totalObject) * 100),
-                    AlphaNumericPercentage = (int)Math.Round(((double)RG.totalAlphaNumeric / (double)totalObject) * 100),
-                    FloatPercentage = (int)Math.Round(((double)RG.totalFloat / (double)totalObject) * 100.0)
-                };
+                var info = _randomNumberService.GetReportData();
 
                 return new Response(true, "Success", info);
-
-
             }
 
             catch (Exception ex)

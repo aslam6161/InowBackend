@@ -1,4 +1,6 @@
 using InowBackend.Hubs;
+using InowBackend.Services.Randoms;
+using InowBackend.Services.Utility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -42,8 +44,11 @@ namespace InowBackend
                 .AllowAnyHeader()
                 .AllowCredentials());
             });
+
+            //serices
             services.AddSignalR();
-            services.AddSingleton<RandomNumberGenerator>();
+            services.AddSingleton<IRandomNumberService,RandomNumberService>();
+            services.AddTransient<IFileWriterService, FileWriterService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
