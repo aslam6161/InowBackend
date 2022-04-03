@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace InowBackend.Services.Randoms
@@ -15,7 +16,8 @@ namespace InowBackend.Services.Randoms
         private readonly IFileWriterService _fileWriterService;
 
         private bool isStopped = false;
-        string reportFile;
+        StringBuilder reportFile;
+
         public int totalNumeric = 0, totalAlphaNumeric = 0, totalFloat = 0;
 
 
@@ -23,7 +25,7 @@ namespace InowBackend.Services.Randoms
             IFileWriterService fileWriterService)
         {
             _hubContext = hubContext;
-            reportFile = "";
+            reportFile = new StringBuilder();
             totalNumeric = 0;
             totalAlphaNumeric = 0;
             totalFloat = 0;
@@ -38,21 +40,23 @@ namespace InowBackend.Services.Randoms
             {
                 Random ran = new Random();
                 int curRandom = ran.Next(selectedOptions.Count);
-                if (selectedOptions[curRandom] == 0)
+
+                if (selectedOptions[curRandom] == (int)OptionType.Numeric)
                 {
-                    reportFile += reportFile.Length == 0 ? GetRandomNumeric().ToString() : "," + GetRandomNumeric().ToString();
+                    reportFile.Append(reportFile.Length == 0 ? GetRandomNumeric().ToString() : "," + GetRandomNumeric().ToString());
                     totalNumeric++;
                 }
-                else if (selectedOptions[curRandom] == 1)
+                else if (selectedOptions[curRandom] == (int)OptionType.Alphanumeric)
                 {
-                    reportFile += reportFile.Length == 0 ? GetRandomAlphaNumeric() : "," + GetRandomAlphaNumeric();
+                    reportFile.Append(reportFile.Length == 0 ? GetRandomAlphaNumeric() : "," + GetRandomAlphaNumeric());
                     totalAlphaNumeric++;
                 }
                 else
                 {
-                    reportFile += reportFile.Length == 0 ? GetRandomFloat().ToString() : "," + GetRandomFloat().ToString();
+                    reportFile.Append(reportFile.Length == 0 ? GetRandomFloat().ToString() : "," + GetRandomFloat().ToString());
                     totalFloat++;
                 }
+
                 await _hubContext.Clients.All.CounterUpdate(new CounterDTO
                 {
                     counter1 = totalNumeric,
@@ -65,7 +69,7 @@ namespace InowBackend.Services.Randoms
                     isStopped = true;
                 }
             }
-            _fileWriterService.WriteStrToFile(reportFile);
+            _fileWriterService.WriteStrToFile(reportFile.ToString());
         }
 
         public void Stop()
@@ -104,19 +108,20 @@ namespace InowBackend.Services.Randoms
 
         private string GetRandomAlphaNumeric()
         {
+
             Random ran = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
-            string str = "";
-            str += new string(' ', ran.Next(5));
-            str += new string(Enumerable.Repeat(chars, 10)
-                .Select(s => s[ran.Next(s.Length)]).ToArray());
-            str += new string(' ', ran.Next(5));
-            return str;
+            StringBuilder str = new StringBuilder();
+            str.Append(' ',5);
+            str.Append(new string(Enumerable.Repeat(chars, 10)
+                .Select(s => s[ran.Next(s.Length)]).ToArray()));
+            str.Append(' ',5);
+            return str.ToString();
         }
 
         private void Reset()
         {
-            reportFile = "";
+            reportFile = reportFile.Clear();
             isStopped = false;
             totalAlphaNumeric = totalFloat = totalNumeric = 0;
         }
