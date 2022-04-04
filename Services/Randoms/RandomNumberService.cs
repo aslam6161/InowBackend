@@ -32,30 +32,50 @@ namespace InowBackend.Services.Randoms
             _fileWriterService = fileWriterService;
         }
 
-        public async Task GenerateRandomNumber(List<int> selectedOptions, int fileSize)
+        public async Task GenerateRandomNumber(List<int> selectedOptions, int fileSize, int numericP, int alphaNumericP, int floatP)
         {
             Reset();
 
             while (isStopped == false)
             {
                 Random ran = new Random();
-                int curRandom = ran.Next(selectedOptions.Count);
 
-                if (selectedOptions[curRandom] == (int)OptionType.Numeric)
+                if (numericP > 0 || alphaNumericP > 0 || floatP > 0)
                 {
-                    reportFile.Append(reportFile.Length == 0 ? GetRandomNumeric().ToString() : "," + GetRandomNumeric().ToString());
-                    totalNumeric++;
-                }
-                else if (selectedOptions[curRandom] == (int)OptionType.Alphanumeric)
-                {
-                    reportFile.Append(reportFile.Length == 0 ? GetRandomAlphaNumeric() : "," + GetRandomAlphaNumeric());
-                    totalAlphaNumeric++;
+                    int perCent = ran.Next(0,100);
+
+                    if (perCent<numericP)
+                    {
+                        AppendNumeric();
+                    }
+                    else if (perCent< numericP+alphaNumericP)
+                    {
+                        AppendAlphaNumeric();
+                    }
+                    else if (perCent < numericP + alphaNumericP+floatP)
+                    {
+                        AppendFloat();
+                    }
                 }
                 else
                 {
-                    reportFile.Append(reportFile.Length == 0 ? GetRandomFloat().ToString() : "," + GetRandomFloat().ToString());
-                    totalFloat++;
+                    int curRandom = ran.Next(selectedOptions.Count);
+
+                    if (selectedOptions[curRandom] == (int)OptionType.Numeric)
+                    {
+                        AppendNumeric();
+                    }
+                    else if (selectedOptions[curRandom] == (int)OptionType.Alphanumeric)
+                    {
+                        AppendAlphaNumeric();
+                    }
+                    else
+                    {
+                        AppendFloat();
+                    }
                 }
+
+
 
                 await _hubContext.Clients.All.CounterUpdate(new CounterDTO
                 {
@@ -64,12 +84,32 @@ namespace InowBackend.Services.Randoms
                     counter3 = totalFloat
                 });
 
+
                 if (reportFile.Length > fileSize * 1020)
                 {
                     isStopped = true;
                 }
+
             }
             _fileWriterService.WriteStrToFile(reportFile.ToString());
+        }
+
+        private void AppendNumeric()
+        {
+            reportFile.Append(reportFile.Length == 0 ? GetRandomNumeric().ToString() : "," + GetRandomNumeric().ToString());
+            totalNumeric++;
+        }
+
+        private void AppendAlphaNumeric()
+        {
+            reportFile.Append(reportFile.Length == 0 ? GetRandomAlphaNumeric() : "," + GetRandomAlphaNumeric());
+            totalAlphaNumeric++;
+        }
+
+        private void AppendFloat()
+        {
+            reportFile.Append(reportFile.Length == 0 ? GetRandomFloat().ToString() : "," + GetRandomFloat().ToString());
+            totalFloat++;
         }
 
         public void Stop()
@@ -80,17 +120,20 @@ namespace InowBackend.Services.Randoms
         public ReportInfo GetReportData()
         {
             var totalObject = this.totalNumeric + this.totalAlphaNumeric + this.totalFloat;
-
-
-            ReportInfo info = new ReportInfo()
+            ReportInfo info = new ReportInfo();
+            if (totalObject > 0)
             {
-                NumericPercentage = (int)Math.Round(((double)this.totalNumeric / (double)totalObject) * 100),
-                AlphaNumericPercentage = (int)Math.Round(((double)this.totalAlphaNumeric / (double)totalObject) * 100),
-                FloatPercentage = (int)Math.Round(((double)this.totalFloat / (double)totalObject) * 100.0)
-            };
+                var randomFiles = _fileWriterService.GetFileElementsByLimit(20);
 
+                info.NumericPercentage = (int)Math.Round(((double)this.totalNumeric / (double)totalObject) * 100);
+                info.AlphaNumericPercentage = (int)Math.Round(((double)this.totalAlphaNumeric / (double)totalObject) * 100);
+                info.FloatPercentage = (int)Math.Round(((double)this.totalFloat / (double)totalObject) * 100.0);
+                info.RandomFiles = randomFiles;
+
+            }
             return info;
         }
+
 
 
         private int GetRandomNumeric()
@@ -112,10 +155,10 @@ namespace InowBackend.Services.Randoms
             Random ran = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
             StringBuilder str = new StringBuilder();
-            str.Append(' ',5);
+            str.Append(' ', 5);
             str.Append(new string(Enumerable.Repeat(chars, 10)
                 .Select(s => s[ran.Next(s.Length)]).ToArray()));
-            str.Append(' ',5);
+            str.Append(' ', 5);
             return str.ToString();
         }
 

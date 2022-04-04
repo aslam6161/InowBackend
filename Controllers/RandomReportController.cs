@@ -22,7 +22,7 @@ namespace InowBackend.Controllers
 
             try
             {
-                await _randomNumberService.GenerateRandomNumber(option.SelectedOptions, option.FileSize);
+                await _randomNumberService.GenerateRandomNumber(option.SelectedOptions, option.FileSize,option.NumericP,option.AlphaNumericP,option.FloatP);
 
                 return new Response(true, "Started", null);
             }

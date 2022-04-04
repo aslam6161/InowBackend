@@ -8,5 +8,7 @@ namespace InowBackend.Services.Utility
    public interface IFileWriterService
     {
         void WriteStrToFile(string str);
+
+        List<string> GetFileElementsByLimit(int limit);
     }
 }

@@ -10,5 +10,6 @@ namespace InowBackend.Models
         public int NumericPercentage { get; set; }
         public int AlphaNumericPercentage { get; set; }
         public int FloatPercentage { get; set; }
+        public List<string> RandomFiles { get; set; }
     }
 }

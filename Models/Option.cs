@@ -13,6 +13,9 @@ namespace InowBackend.Models
         }
         public List<int> SelectedOptions { get; set; }
         public int FileSize { get; set; }
+        public int NumericP { get; set; }
+        public int AlphaNumericP { get; set; }
+        public int FloatP { get; set; }
     }
 
 }
